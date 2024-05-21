@@ -109,7 +109,7 @@ public class FerramentaDAOimpl implements FerramentaDAO {
     }
 }
 
-///////////
+///////////Para testar a implementação do DAO com JDBC:
 
 
 public class Main {
