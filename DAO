@@ -1,0 +1,305 @@
+package dao;
+
+import model.Ferramenta;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class FerramentaDAOimpl implements FerramentaDAO {
+    private String url;
+
+    public FerramentaDAOimpl(String url) {
+        this.url = url;
+    }
+
+    private Connection connect() {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(url);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return conn;
+    }
+
+    @Override
+    public void salvarFerramenta(Ferramenta ferramenta) {
+        String sql = "INSERT INTO ferramentas(nome, marca, custo) VALUES(?, ?, ?)";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, ferramenta.getNome());
+            pstmt.setString(2, ferramenta.getMarca());
+            pstmt.setDouble(3, ferramenta.getCusto());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public void atualizarFerramenta(Ferramenta ferramenta) {
+        String sql = "UPDATE ferramentas SET nome = ?, marca = ?, custo = ? WHERE id = ?";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, ferramenta.getNome());
+            pstmt.setString(2, ferramenta.getMarca());
+            pstmt.setDouble(3, ferramenta.getCusto());
+            pstmt.setInt(4, ferramenta.getId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public void excluirFerramenta(int id) {
+        String sql = "DELETE FROM ferramentas WHERE id = ?";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public Ferramenta buscarFerramentaPorId(int id) {
+        String sql = "SELECT * FROM ferramentas WHERE id = ?";
+        Ferramenta ferramenta = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                ferramenta = new Ferramenta(
+                    rs.getInt("id"),
+                    rs.getString("nome"),
+                    rs.getString("marca"),
+                    rs.getDouble("custo")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return ferramenta;
+    }
+
+    @Override
+    public List<Ferramenta> listarTodasFerramentas() {
+        String sql = "SELECT * FROM ferramentas";
+        List<Ferramenta> ferramentas = new ArrayList<>();
+        try (Connection conn = this.connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Ferramenta ferramenta = new Ferramenta(
+                    rs.getInt("id"),
+                    rs.getString("nome"),
+                    rs.getString("marca"),
+                    rs.getDouble("custo")
+                );
+                ferramentas.add(ferramenta);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return ferramentas;
+    }
+}
+
+///////////
+
+
+public class Main {
+    public static void main(String[] args) {
+        String url = "jdbc:sqlite:ferramentas.db";
+        FerramentaDAO ferramentaDAO = new FerramentaDAOimpl(url);
+
+        // Inserir uma nova ferramenta
+        Ferramenta novaFerramenta = new Ferramenta(0, "Martelo", "Tramontina", 29.99);
+        ferramentaDAO.salvarFerramenta(novaFerramenta);
+
+        // Listar todas as ferramentas
+        List<Ferramenta> ferramentas = ferramentaDAO.listarTodasFerramentas();
+        for (Ferramenta ferramenta : ferramentas) {
+            System.out.println(ferramenta.getNome() + " - " + ferramenta.getMarca() + " - " + ferramenta.getCusto());
+        }
+
+        // Buscar uma ferramenta por ID
+        Ferramenta ferramentaBuscada = ferramentaDAO.buscarFerramentaPorId(1);
+        if (ferramentaBuscada != null) {
+            System.out.println("Ferramenta encontrada: " + ferramentaBuscada.getNome());
+        } else {
+            System.out.println("Ferramenta não encontrada.");
+        }
+
+        // Atualizar uma ferramenta
+        Ferramenta ferramentaAtualizada = new Ferramenta(1, "Martelo", "Tramontina", 39.99);
+        ferramentaDAO.atualizarFerramenta(ferramentaAtualizada);
+
+        // Excluir uma ferramenta
+        ferramentaDAO.excluirFerramenta(1);
+    }
+}
+
+/////////////////
+
+package dao;
+
+import model.Amigo;
+import java.util.List;
+
+public interface AmigosDAO {
+    void salvarAmigo(Amigo amigo);
+    void atualizarAmigo(Amigo amigo);
+    void excluirAmigo(int id);
+    Amigo buscarAmigoPorId(int id);
+    List<Amigo> listarTodosAmigos();
+}
+
+///////////////
+
+package dao;
+
+import model.Amigo;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class AmigosDAOimpl implements AmigosDAO {
+    private String url;
+
+    public AmigosDAOimpl(String url) {
+        this.url = url;
+    }
+
+    private Connection connect() {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(url);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return conn;
+    }
+
+    @Override
+    public void salvarAmigo(Amigo amigo) {
+        String sql = "INSERT INTO amigos(nome, telefone) VALUES(?, ?)";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, amigo.getNome());
+            pstmt.setString(2, amigo.getTelefone());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public void atualizarAmigo(Amigo amigo) {
+        String sql = "UPDATE amigos SET nome = ?, telefone = ? WHERE id = ?";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, amigo.getNome());
+            pstmt.setString(2, amigo.getTelefone());
+            pstmt.setInt(3, amigo.getId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public void excluirAmigo(int id) {
+        String sql = "DELETE FROM amigos WHERE id = ?";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public Amigo buscarAmigoPorId(int id) {
+        String sql = "SELECT * FROM amigos WHERE id = ?";
+        Amigo amigo = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                amigo = new Amigo(
+                    rs.getInt("id"),
+                    rs.getString("nome"),
+                    rs.getString("telefone")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return amigo;
+    }
+
+    @Override
+    public List<Amigo> listarTodosAmigos() {
+        String sql = "SELECT * FROM amigos";
+        List<Amigo> amigos = new ArrayList<>();
+        try (Connection conn = this.connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Amigo amigo = new Amigo(
+                    rs.getInt("id"),
+                    rs.getString("nome"),
+                    rs.getString("telefone")
+                );
+                amigos.add(amigo);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return amigos;
+    }
+}
+
+//////////////////////
+
+//Para testar a implementação do DAO com JDBC:
+
+public class Main {
+    public static void main(String[] args) {
+        String url = "jdbc:sqlite:amigos.db";
+        AmigosDAO amigosDAO = new AmigosDAOimpl(url);
+
+        // Inserir um novo amigo
+        Amigo novoAmigo = new Amigo(0, "Carlos Silva", "555-1234");
+        amigosDAO.salvarAmigo(novoAmigo);
+
+        // Listar todos os amigos
+        List<Amigo> amigos = amigosDAO.listarTodosAmigos();
+        for (Amigo amigo : amigos) {
+            System.out.println(amigo.getNome() + " - " + amigo.getTelefone());
+        }
+
+        // Buscar um amigo por ID
+        Amigo amigoBuscado = amigosDAO.buscarAmigoPorId(1);
+        if (amigoBuscado != null) {
+            System.out.println("Amigo encontrado: " + amigoBuscado.getNome());
+        } else {
+            System.out.println("Amigo não encontrado.");
+        }
+
+        // Atualizar um amigo
+        Amigo amigoAtualizado = new Amigo(1, "Carlos Alberto Silva", "555-5678");
+        amigosDAO.atualizarAmigo(amigoAtualizado);
+
+        // Excluir um amigo
+        amigosDAO.excluirAmigo(1);
+    }
+}
