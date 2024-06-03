@@ -1,0 +1,6 @@
+try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/seubanco", "seuusuario", "suasenha");
+            amigoDAO = new AmigoDAOImpl(connection);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
